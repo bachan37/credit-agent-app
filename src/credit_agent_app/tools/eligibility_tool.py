@@ -1,3 +1,4 @@
+from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 from langchain_core.tools import tool
 
@@ -12,8 +13,8 @@ class EligibilityOutput(BaseModel):
     max_emi: float = Field(..., description="Maximum monthly EMI the applicant can afford")
     max_tenure: int = Field(..., description="Maximum loan tenure in years")
     status: str = Field(..., description="Status of the applicant's eligibility")
-    
-@tool("calculate_loan_eligibility", args_schema=EligibilityInput)
+
+# function to calculate loan eligibility    
 def calculate_loan_eligibility(monthly_obligation: float, salary_after_tax: float, age: int, rate_of_interest: float) -> EligibilityOutput:
     """Calculates maximum loan tenure, eligible loan amount, and resulting monthly EMI based on salary, obligation, and age."""
     print("calculate_loan_eligibility: Running")
@@ -48,3 +49,11 @@ def calculate_loan_eligibility(monthly_obligation: float, salary_after_tax: floa
         max_tenure=max_tenure_years,
         status="Eligible for new loan"
     )    
+
+# structuredtool for the function
+calculate_loan_eligibility_tool = StructuredTool.from_function(
+    func=calculate_loan_eligibility,
+    name="calculate_loan_eligibility",
+    description="Calculates maximum loan tenure, eligible loan amount, and resulting monthly EMI based on salary, obligation, and age.",
+    args_schema=EligibilityInput
+)

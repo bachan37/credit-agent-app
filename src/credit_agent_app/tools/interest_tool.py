@@ -1,3 +1,4 @@
+from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field   
 from langchain_core.tools import tool
 
@@ -10,11 +11,11 @@ class InterestOutput(BaseModel):
     credit_score: int = Field(..., description="Credit score of the applicant")
     interest_rate: float = Field(..., description="Applicable annual interest rate percentage")
 
-@tool("get_rate_of_interest", args_schema=InterestInput)
+# func to get interest rate
 def get_rate_of_interest(credit_score: int) -> InterestOutput:
     """Takes a credit score and returns the applicable annual interest rate percentage."""
     print("get_rate_of_interest: Running")
-    
+
     if credit_score >= 800:
         roi = 8.0
     elif credit_score >= 780:
@@ -28,5 +29,13 @@ def get_rate_of_interest(credit_score: int) -> InterestOutput:
 
     print("get_rate_of_interest: returning result")
     return InterestOutput(credit_score=credit_score, interest_rate=roi)
+
+# structured tool from the function
+get_rate_of_interest_tool = StructuredTool.from_function(
+    func=get_rate_of_interest,
+    name="get_rate_of_interest",
+    description="Takes a credit score and returns the applicable annual interest rate percentage.",
+    args_schema=InterestInput
+)
 
     
