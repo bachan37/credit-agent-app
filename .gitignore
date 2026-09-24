@@ -11,3 +11,6 @@ wheels/
 
 # anything you recommend
 .env
+
+#.DS_Store
+**/.DS_Store
