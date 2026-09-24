@@ -6,6 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from credit_agent_app.config import settings
+from typing import Optional
 
 class BankPolicyStore:
     def __init__(self, host: str = "localhost", port: int = 8000, collection_name: str = "bank_policy_docs"):
@@ -15,6 +16,22 @@ class BankPolicyStore:
             collection_name=collection_name,
             embedding_function=OpenAIEmbeddings(api_key=settings.OPENAI_API_KEY),
         )
+
+    def search_policy(self, query: str, bank_name: Optional[str] = None, k: int = 4) -> str:
+        """Retrieves top matching rules from ChromaDB with optional bank filtering."""
+        filter_dict = {"bank_name": bank_name.lower()} if bank_name else None
+        
+        docs = self.vector_store.similarity_search(query, k=k, filter=filter_dict)
+        if not docs:
+            return f"No matching bank policy rules found{' for ' + bank_name if bank_name else ''}."
+        
+        results = []
+        for d in docs:
+            source_bank = d.metadata.get("bank_name", "general").upper()
+            page = d.metadata.get("page", "N/A")
+            results.append(f"[{source_bank} - Page {page}]: {d.page_content}")
+            
+        return "\n\n".join(results)
 
     def is_bank_ingested(self, bank_key: str) -> bool:
         """Checks if any documents exist in ChromaDB for the given bank key."""

@@ -44,12 +44,19 @@ class LoanAssessmentPipeline:
         self.prompt_template = ChatPromptTemplate(
             messages=[
                 ("system", (
-                    "You are a loan assessment agent.\n"
-                    "Your workflow:\n"
-                    "1. For NEW loan calculations: Call `get_credit_details_by_pan`, `get_rate_of_interest`, and `calculate_loan_eligibility` sequentially.\n"
-                    "2. For HISTORICAL or GENERAL questions about past applicants: Call the `search_past_assessments` tool to query ChromaDB.\n"
-                    "3. When returning a loan evaluation result, format strictly according to these instructions:\n"
-                    "{format_instructions}"
+                    "You are an expert loan assessment agent.\n\n"
+                    "Workflows & Routing Guidelines:\n"
+                    "1. FOR QUESTIONS ABOUT BANK POLICY, TERMS, FEES, OR ELIGIBILITY RULES (e.g., SBI or Axis bank rules):\n"
+                    "   - Call `search_bank_policy` to retrieve document facts.\n"
+                    "   - Answer directly using natural, conversational text.\n"
+                    "   - DO NOT format the response using the loan evaluation schema below.\n\n"
+                    "2. FOR HISTORICAL OR GENERAL QUESTIONS ABOUT PAST APPLICANTS:\n"
+                    "   - Call `search_past_assessments` to query ChromaDB.\n"
+                    "   - Answer directly using natural text.\n\n"
+                    "3. FOR NEW LOAN EVALUATIONS (when assessing a specific applicant/PAN):\n"
+                    "   - Call `get_credit_details_by_pan`, `get_rate_of_interest`, and `calculate_loan_eligibility` sequentially.\n"
+                    "   - ONLY FOR THIS WORKFLOW, format your final response strictly using the following schema instructions:\n"
+                    "   {format_instructions}"
                 )),
                 ("placeholder", "{chat_history}"),
                 ("human", "{input}"),
